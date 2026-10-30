@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'course_provider.dart';
 import 'models/course.dart';
 import 'services/course_service.dart';
+import 'repositories/course_repository.dart';
 
 const String studentName = 'I Kadek Agus Dwi Adnyana';
 const String studentId = '2415051076';
@@ -23,39 +24,40 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 9 - Service Data Source',
+      title: 'Tahap 10 - Repository Pattern',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const ServiceDemoPage(),
+      home: const RepositoryDemoPage(),
     );
   }
 }
 
-class ServiceDemoPage extends StatefulWidget {
-  const ServiceDemoPage({super.key});
+class RepositoryDemoPage extends StatefulWidget {
+  const RepositoryDemoPage({super.key});
 
   @override
-  State<ServiceDemoPage> createState() => _ServiceDemoPageState();
+  State<RepositoryDemoPage> createState() => _RepositoryDemoPageState();
 }
 
-class _ServiceDemoPageState extends State<ServiceDemoPage> {
-  final CourseService courseService = CourseService();
+class _RepositoryDemoPageState extends State<RepositoryDemoPage> {
+  late final CourseRepository courseRepository;
   late Future<List<Course>> coursesFuture;
 
   @override
   void initState() {
     super.initState();
-    coursesFuture = courseService.loadCourses();
+    courseRepository = CourseRepository(CourseService());
+    coursesFuture = courseRepository.getCourses();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 9: CourseService Data Source'),
+        title: const Text('Tahap 10: Repository Pattern'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         centerTitle: true,
       ),
@@ -144,7 +146,7 @@ class _ServiceDemoPageState extends State<ServiceDemoPage> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Data Dimuat dari CourseService:',
+                'Data Diambil via CourseRepository:',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
               const SizedBox(height: 10),
