@@ -13,35 +13,53 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 1 - Local vs Shared State',
+      title: 'Tahap 2 - Masalah setState & Prop Drilling',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const StateClassificationPage(),
+      home: const ParentStateDemoPage(),
     );
   }
 }
 
-class StateClassificationPage extends StatefulWidget {
-  const StateClassificationPage({super.key});
+// ========================================================
+// PARENT WIDGET: Pemilik State (State Ownership) - Poin 9
+// ========================================================
+class ParentStateDemoPage extends StatefulWidget {
+  const ParentStateDemoPage({super.key});
 
   @override
-  State<StateClassificationPage> createState() =>
-      _StateClassificationPageState();
+  State<ParentStateDemoPage> createState() => _ParentStateDemoPageState();
 }
 
-class _StateClassificationPageState extends State<StateClassificationPage> {
-  // Poin 7: Implementasi Local State dengan setState()
-  bool isDetailVisible = false;
-  bool isLocalFavorite = false;
+class _ParentStateDemoPageState extends State<ParentStateDemoPage> {
+  // Satu nilai shared state yang dimiliki oleh Parent
+  final List favoriteCourseIds = [1];
+
+  final List rawCourses = const [
+    {'id': 1, 'title': 'Git & GitHub', 'code': 'MOB01', 'sks': 2},
+    {'id': 2, 'title': 'Dart Fundamentals', 'code': 'MOB02', 'sks': 2},
+    {'id': 3, 'title': 'Flutter UI Fundamentals', 'code': 'MOB03', 'sks': 3},
+  ];
+
+  // Callback action yang akan dipicu oleh child terbawah
+  void toggleFavorite(int id) {
+    setState(() {
+      if (favoriteCourseIds.contains(id)) {
+        favoriteCourseIds.remove(id);
+      } else {
+        favoriteCourseIds.add(id);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 1: Local vs Shared State'),
+        title: const Text('Tahap 2: Masalah setState & Prop Drilling'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         centerTitle: true,
       ),
@@ -98,131 +116,15 @@ class _StateClassificationPageState extends State<StateClassificationPage> {
               ),
               const SizedBox(height: 16),
 
-              // Poin 5 & 6: Ringkasan 5 State & Pengelompokannya
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Identifikasi & Klasifikasi 5 State:',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildStateRow(
-                        '1. Status Bookmark / Favorites',
-                        'Shared State',
-                        Colors.orange,
-                      ),
-                      _buildStateRow(
-                        '2. Katalog Data Mata Kuliah',
-                        'Shared State',
-                        Colors.orange,
-                      ),
-                      _buildStateRow(
-                        '3. Expand / Hide Rincian Kartu',
-                        'Local State',
-                        Colors.green,
-                      ),
-                      _buildStateRow(
-                        '4. Indeks Tab Navigasi Aktif',
-                        'Shared State',
-                        Colors.orange,
-                      ),
-                      _buildStateRow(
-                        '5. Teks Input Formulir Feedback',
-                        'Local State',
-                        Colors.green,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // Poin 10: Child Pertama menerima data via constructor
+              CoursesSummary(favoriteCount: favoriteCourseIds.length),
               const SizedBox(height: 16),
 
-              // Poin 7: Komponen Uji Local State (setState)
-              Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Flutter UI & Architecture',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              isLocalFavorite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: isLocalFavorite ? Colors.red : Colors.grey,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                isLocalFavorite = !isLocalFavorite;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                      const Text(
-                        'MOB05 • 3 SKS • Status: Active',
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
-                      ),
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            isDetailVisible = !isDetailVisible;
-                          });
-                        },
-                        icon: Icon(
-                          isDetailVisible
-                              ? Icons.expand_less
-                              : Icons.expand_more,
-                        ),
-                        label: Text(
-                          isDetailVisible
-                              ? 'Sembunyikan Rincian'
-                              : 'Tampilkan Rincian (setState)',
-                        ),
-                      ),
-                      if (isDetailVisible) ...[
-                        const Divider(height: 20),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'Rincian ini dikontrol oleh local state (isDetailVisible). Saat tombol ditekan, hanya widget ini yang dibangun ulang melalui setState().',
-                            style: TextStyle(fontSize: 13, height: 1.4),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+              // Poin 10 & 11: Child Kedua menerima data & callback via constructor
+              CourseList(
+                courses: rawCourses,
+                favoriteIds: favoriteCourseIds,
+                onToggleFavorite: toggleFavorite,
               ),
             ],
           ),
@@ -230,30 +132,122 @@ class _StateClassificationPageState extends State<StateClassificationPage> {
       ),
     );
   }
+}
 
-  static Widget _buildStateRow(String name, String type, Color badgeColor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+// ========================================================
+// CHILD 1: CoursesSummary (Menerima data dari Parent)
+// ========================================================
+class CoursesSummary extends StatelessWidget {
+  final int favoriteCount;
+
+  const CoursesSummary({super.key, required this.favoriteCount});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(name, style: const TextStyle(fontSize: 13)),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              type,
-              style: TextStyle(
-                color: badgeColor,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
+          const Text(
+            'Ringkasan Favorit (Child 1):',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          Text(
+            '$favoriteCount Tersimpan',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ========================================================
+// CHILD 2: CourseList (Perantara Prop Drilling)
+// Mengoper data & callback ke grandchild (CourseItemCard)
+// ========================================================
+class CourseList extends StatelessWidget {
+  final List courses;
+  final List favoriteIds;
+  final Function(int) onToggleFavorite;
+
+  const CourseList({
+    super.key,
+    required this.courses,
+    required this.favoriteIds,
+    required this.onToggleFavorite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Daftar Kursus (Child 2 - Meneruskan Props):',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        const SizedBox(height: 10),
+        // Prop drilling berlanjut ke CourseItemCard
+        ...courses.map((item) {
+          final c = item as Map;
+          final int id = c['id'] as int;
+          final bool isFav = favoriteIds.contains(id);
+
+          return CourseItemCard(
+            course: c,
+            isFavorite: isFav,
+            onToggleFavorite: () => onToggleFavorite(id),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+// ========================================================
+// GRANDCHILD: CourseItemCard (Konsumen Aksi Paling Bawah)
+// ========================================================
+class CourseItemCard extends StatelessWidget {
+  final Map course;
+  final bool isFavorite;
+  final VoidCallback onToggleFavorite;
+
+  const CourseItemCard({
+    super.key,
+    required this.course,
+    required this.isFavorite,
+    required this.onToggleFavorite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        title: Text(
+          course['title'].toString(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text('${course['code']} • ${course['sks']} SKS'),
+        trailing: IconButton(
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : Colors.grey,
+          ),
+          onPressed: onToggleFavorite, // Memanggil callback naik ke parent
+        ),
       ),
     );
   }
