@@ -11,6 +11,8 @@ class CourseDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFav = context.watch<CourseProvider>().isFavorite(course.code);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(course.title),
@@ -39,39 +41,39 @@ class CourseDetailPage extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text('Kode: ${course.code}'),
-                      Text('Bobot: ${course.credits} SKS'),
-                      Text('Status: ${course.status}'),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Kode: ${course.code}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Bobot: ${course.credits} SKS',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Status: ${course.status}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              Consumer<CourseProvider>(
-                builder: (context, provider, child) {
-                  final bool isFav = provider.isFavorite(course.code);
-                  return ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isFav
-                          ? Colors.red.shade50
-                          : Colors.blue.shade50,
-                      foregroundColor: isFav
-                          ? Colors.red
-                          : Colors.blue.shade800,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    onPressed: () {
-                      context.read<CourseProvider>().toggleFavorite(
-                        course.code,
-                      );
-                    },
-                    icon: Icon(isFav ? Icons.favorite : Icons.favorite_border),
-                    label: Text(
-                      isFav ? 'Hapus dari Favorit' : 'Tambah ke Favorit',
-                    ),
-                  );
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isFav
+                      ? Colors.red.shade50
+                      : Colors.blue.shade50,
+                  foregroundColor: isFav ? Colors.red : Colors.blue.shade800,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () {
+                  context.read<CourseProvider>().toggleFavorite(course.code);
                 },
+                icon: Icon(isFav ? Icons.favorite : Icons.favorite_border),
+                label: Text(isFav ? 'Hapus dari Favorit' : 'Tambah ke Favorit'),
               ),
             ],
           ),
