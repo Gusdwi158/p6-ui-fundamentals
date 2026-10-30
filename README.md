@@ -1,17 +1,19 @@
-# flutter_ui_fundamentals
+# Course Explorer v2 - State Management & Architecture
 
-A new Flutter project.
+Praktikum Pertemuan 6 Pemrograman Mobile: Penerapan Provider dan Pemisahan Tanggung Jawab Arsitektur (Separation of Concerns).
 
-## Getting Started
+## Identitas Mahasiswa
+- **Nama:** I Kadek Agus Dwi Adnyana
+- **NIM:** 2415051076
+- **Kelas:** PTI 5 A
 
-This project is a starting point for a Flutter application.
+## Alur Dependensi (Dependency Direction)
+Presentation (Screens & Widgets) -> Provider -> Repository -> Service/Data Source
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Tanggung Jawab Struktur Folder
+- `lib/models/`: Berisi representasi entitas data (`Course`) dan fungsi serialisasi/deserialisasi JSON (`fromJson`).
+- `lib/services/`: Mengelola komunikasi langsung dengan sumber data (membaca aset JSON lokal via `rootBundle` atau protokol API).
+- `lib/repositories/`: Menyediakan lapisan abstraksi data antara `CourseProvider` dan sumber data teknis.
+- `lib/providers/`: Mengelola *shared state*, siklus status asynchronous (*loading*, *error*, *data*), dan memancarkan notifikasi perubahan via `notifyListeners()`.
+- `lib/screens/`: Mengatur tata letak tampilan halaman aplikasi secara utuh dan responsif (`HomePage`, `CourseDetailPage`, `FavoritesPage`).
+- `lib/widgets/`: Menyediakan komponen antarmuka modular yang dapat digunakan kembali (`CourseCard`).
