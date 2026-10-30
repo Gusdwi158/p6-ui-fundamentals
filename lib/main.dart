@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'course_provider.dart';
+import 'models/course.dart';
 
 const String studentName = 'I Kadek Agus Dwi Adnyana';
 const String studentId = '2415051076';
@@ -18,38 +19,53 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  //I KADEK AGUS DWI ADNYANA
-  // 2415051076
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 7 - Watch, Read, & Consumer',
+      title: 'Tahap 8 - Model Course',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const WatchReadConsumerPage(),
+      home: const ModelCourseDemoPage(),
     );
   }
 }
 
-class WatchReadConsumerPage extends StatelessWidget {
-  const WatchReadConsumerPage({super.key});
+class ModelCourseDemoPage extends StatelessWidget {
+  const ModelCourseDemoPage({super.key});
 
-  final List rawCourses = const [
-    {'id': 'MOB01', 'title': 'Git & Version Control', 'credits': 2},
-    {'id': 'MOB02', 'title': 'Dart OOP & Async', 'credits': 2},
-    {'id': 'MOB03', 'title': 'State Management & Architecture', 'credits': 3},
+  final List rawJsonData = const [
+    {
+      'code': 'MOB01',
+      'title': 'Git & Version Control',
+      'credits': 2,
+      'status': 'done',
+    },
+    {
+      'code': 'MOB02',
+      'title': 'Dart OOP & Async',
+      'credits': 2,
+      'status': 'done',
+    },
+    {
+      'code': 'MOB03',
+      'title': 'State Management & Architecture',
+      'credits': 3,
+      'status': 'active',
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
-    final int totalFav = context.watch<CourseProvider>().favoriteCount;
+    final List courses = rawJsonData
+        .map((json) => Course.fromJson(Map<String, dynamic>.from(json as Map)))
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 7: watch, read, & Consumer'),
+        title: const Text('Tahap 8: Model Course & Parsing JSON'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         centerTitle: true,
       ),
@@ -104,45 +120,47 @@ class WatchReadConsumerPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Total Favorit (context.watch):',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+              Consumer<CourseProvider>(
+                builder: (context, provider, child) {
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade200),
                     ),
-                    Text(
-                      '$totalFav Item',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blueAccent,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Total Favorit:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '${provider.favoriteCount} Item',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueAccent,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               const Text(
-                'Daftar Kursus (Consumer & context.read):',
+                'Daftar Course (Object Model Ber-tipe):',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
               const SizedBox(height: 10),
               Column(
-                children: rawCourses.map((item) {
-                  final c = item as Map;
-                  final String id = c['id'].toString();
-
+                children: courses.map((item) {
+                  final course = item as Course;
                   return Card(
                     margin: const EdgeInsets.only(bottom: 10),
                     shape: RoundedRectangleBorder(
@@ -150,20 +168,24 @@ class WatchReadConsumerPage extends StatelessWidget {
                     ),
                     child: ListTile(
                       title: Text(
-                        c['title'].toString(),
+                        course.title,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text('$id • ${c['credits']} SKS'),
+                      subtitle: Text(
+                        '${course.code} • ${course.credits} SKS • Status: ${course.status}',
+                      ),
                       trailing: Consumer<CourseProvider>(
                         builder: (context, provider, child) {
-                          final bool isFav = provider.isFavorite(id);
+                          final bool isFav = provider.isFavorite(course.code);
                           return IconButton(
                             icon: Icon(
                               isFav ? Icons.favorite : Icons.favorite_border,
                               color: isFav ? Colors.red : Colors.grey,
                             ),
                             onPressed: () {
-                              context.read<CourseProvider>().toggleFavorite(id);
+                              context.read<CourseProvider>().toggleFavorite(
+                                course.code,
+                              );
                             },
                           );
                         },
