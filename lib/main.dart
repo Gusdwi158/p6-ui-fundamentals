@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'course_provider.dart';
-import 'models/course.dart';
 import 'services/course_service.dart';
 import 'repositories/course_repository.dart';
 
@@ -10,9 +9,12 @@ const String studentName = 'I Kadek Agus Dwi Adnyana';
 const String studentId = '2415051076';
 
 void main() {
+  final service = CourseService();
+  final repository = CourseRepository(service);
+
   runApp(
     ChangeNotifierProvider(
-      create: (_) => CourseProvider(),
+      create: (_) => CourseProvider(repository)..loadCourses(),
       child: const MyApp(),
     ),
   );
@@ -24,40 +26,27 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 10 - Repository Pattern',
+      title: 'Tahap 11 - Async State',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const RepositoryDemoPage(),
+      home: const AsyncStateDemoPage(),
     );
   }
 }
 
-class RepositoryDemoPage extends StatefulWidget {
-  const RepositoryDemoPage({super.key});
-
-  @override
-  State<RepositoryDemoPage> createState() => _RepositoryDemoPageState();
-}
-
-class _RepositoryDemoPageState extends State<RepositoryDemoPage> {
-  late final CourseRepository courseRepository;
-  late Future<List<Course>> coursesFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    courseRepository = CourseRepository(CourseService());
-    coursesFuture = courseRepository.getCourses();
-  }
+class AsyncStateDemoPage extends StatelessWidget {
+  const AsyncStateDemoPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<CourseProvider>();
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 10: Repository Pattern'),
+        title: const Text('Tahap 11: Provider Async State'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         centerTitle: true,
       ),
@@ -112,66 +101,101 @@ class _RepositoryDemoPageState extends State<RepositoryDemoPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              Consumer<CourseProvider>(
-                builder: (context, provider, child) {
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.shade200),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Total Favorit:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Total Favorit:',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          '${provider.favoriteCount} Item',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      '${provider.favoriteCount} Item',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueAccent,
+                      ),
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Data Diambil via CourseRepository:',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Status Async Provider:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh, color: Colors.blueAccent),
+                    onPressed: () {
+                      context.read<CourseProvider>().loadCourses();
+                    },
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
-              FutureBuilder<List<Course>>(
-                future: coursesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
+              Builder(
+                builder: (context) {
+                  if (provider.isLoading) {
                     return const Center(
                       child: Padding(
-                        padding: EdgeInsets.all(24.0),
+                        padding: EdgeInsets.all(32.0),
                         child: CircularProgressIndicator(),
                       ),
                     );
                   }
 
-                  if (snapshot.hasError) {
+                  if (provider.error != null) {
                     return Center(
-                      child: Text('Gagal memuat data: ${snapshot.error}'),
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                              size: 36,
+                            ),
+                            const SizedBox(height: 8),
+                            Text('Terjadi galat: ${provider.error}'),
+                            const SizedBox(height: 10),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<CourseProvider>().loadCourses();
+                              },
+                              child: const Text('Coba Lagi'),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   }
 
-                  final courses = snapshot.data ?? [];
+                  if (provider.courses.isEmpty) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Text('Tidak ada data kursus tersedia.'),
+                      ),
+                    );
+                  }
 
                   return Column(
-                    children: courses.map((course) {
+                    children: provider.courses.map((course) {
+                      final bool isFav = provider.isFavorite(course.code);
+
                       return Card(
                         margin: const EdgeInsets.only(bottom: 10),
                         shape: RoundedRectangleBorder(
@@ -185,23 +209,14 @@ class _RepositoryDemoPageState extends State<RepositoryDemoPage> {
                           subtitle: Text(
                             '${course.code} • ${course.credits} SKS • Status: ${course.status}',
                           ),
-                          trailing: Consumer<CourseProvider>(
-                            builder: (context, provider, child) {
-                              final bool isFav = provider.isFavorite(
+                          trailing: IconButton(
+                            icon: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              color: isFav ? Colors.red : Colors.grey,
+                            ),
+                            onPressed: () {
+                              context.read<CourseProvider>().toggleFavorite(
                                 course.code,
-                              );
-                              return IconButton(
-                                icon: Icon(
-                                  isFav
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color: isFav ? Colors.red : Colors.grey,
-                                ),
-                                onPressed: () {
-                                  context.read<CourseProvider>().toggleFavorite(
-                                    course.code,
-                                  );
-                                },
                               );
                             },
                           ),
