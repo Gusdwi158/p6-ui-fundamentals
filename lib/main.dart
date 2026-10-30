@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'course_state.dart';
+import 'course_provider.dart';
 
 const String studentName = 'I Kadek Agus Dwi Adnyana';
 const String studentId = '2415051076';
 
+//I KADEK AGUS DWI ADNYANA
+// 2415051076
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CourseProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,26 +23,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 5 - ChangeNotifier',
+      title: 'Tahap 6 - Provider Setup',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const ChangeNotifierDemoPage(),
+      home: const ProviderSetupPage(),
     );
   }
 }
 
-class ChangeNotifierDemoPage extends StatefulWidget {
-  const ChangeNotifierDemoPage({super.key});
-
-  @override
-  State<ChangeNotifierDemoPage> createState() => _ChangeNotifierDemoPageState();
-}
-
-class _ChangeNotifierDemoPageState extends State<ChangeNotifierDemoPage> {
-  final CourseState courseState = CourseState();
+class ProviderSetupPage extends StatelessWidget {
+  const ProviderSetupPage({super.key});
 
   final List rawCourses = const [
     {'id': 'MOB01', 'title': 'Git & Version Control', 'credits': 2},
@@ -43,16 +44,12 @@ class _ChangeNotifierDemoPageState extends State<ChangeNotifierDemoPage> {
   ];
 
   @override
-  void dispose() {
-    courseState.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final provider = context.watch<CourseProvider>();
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 5: ChangeNotifier & notifyListeners'),
+        title: const Text('Tahap 6: Provider Setup'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         centerTitle: true,
       ),
@@ -107,79 +104,69 @@ class _ChangeNotifierDemoPageState extends State<ChangeNotifierDemoPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              ListenableBuilder(
-                listenable: courseState,
-                builder: (context, child) {
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.shade200),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Total Favorit (via Provider):',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Total Kursus Favorit (ChangeNotifier):',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          '${courseState.favoriteCount} Item',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      '${provider.favoriteCount} Item',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueAccent,
+                      ),
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
-                'Katalog Kursus (Memicu notifyListeners):',
+                'Daftar Kursus (Akses State dari Root):',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
               const SizedBox(height: 10),
-              ListenableBuilder(
-                listenable: courseState,
-                builder: (context, child) {
-                  return Column(
-                    children: rawCourses.map((item) {
-                      final c = item as Map;
-                      final String id = c['id'].toString();
-                      final bool isFav = courseState.isFavorite(id);
+              Column(
+                children: rawCourses.map((item) {
+                  final c = item as Map;
+                  final String id = c['id'].toString();
+                  final bool isFav = provider.isFavorite(id);
 
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        c['title'].toString(),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text('$id • ${c['credits']} SKS'),
+                      trailing: IconButton(
+                        icon: Icon(
+                          isFav ? Icons.favorite : Icons.favorite_border,
+                          color: isFav ? Colors.red : Colors.grey,
                         ),
-                        child: ListTile(
-                          title: Text(
-                            c['title'].toString(),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text('$id • ${c['credits']} SKS'),
-                          trailing: IconButton(
-                            icon: Icon(
-                              isFav ? Icons.favorite : Icons.favorite_border,
-                              color: isFav ? Colors.red : Colors.grey,
-                            ),
-                            onPressed: () {
-                              courseState.toggleFavorite(id);
-                            },
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                        onPressed: () {
+                          provider.toggleFavorite(id);
+                        },
+                      ),
+                    ),
                   );
-                },
+                }).toList(),
               ),
             ],
           ),
