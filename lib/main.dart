@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'course_provider.dart';
 import 'models/course.dart';
+import 'services/course_service.dart';
 
 const String studentName = 'I Kadek Agus Dwi Adnyana';
 const String studentId = '2415051076';
@@ -22,50 +23,39 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 8 - Model Course',
+      title: 'Tahap 9 - Service Data Source',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const ModelCourseDemoPage(),
+      home: const ServiceDemoPage(),
     );
   }
 }
 
-class ModelCourseDemoPage extends StatelessWidget {
-  const ModelCourseDemoPage({super.key});
+class ServiceDemoPage extends StatefulWidget {
+  const ServiceDemoPage({super.key});
 
-  final List rawJsonData = const [
-    {
-      'code': 'MOB01',
-      'title': 'Git & Version Control',
-      'credits': 2,
-      'status': 'done',
-    },
-    {
-      'code': 'MOB02',
-      'title': 'Dart OOP & Async',
-      'credits': 2,
-      'status': 'done',
-    },
-    {
-      'code': 'MOB03',
-      'title': 'State Management & Architecture',
-      'credits': 3,
-      'status': 'active',
-    },
-  ];
+  @override
+  State<ServiceDemoPage> createState() => _ServiceDemoPageState();
+}
+
+class _ServiceDemoPageState extends State<ServiceDemoPage> {
+  final CourseService courseService = CourseService();
+  late Future<List<Course>> coursesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    coursesFuture = courseService.loadCourses();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List courses = rawJsonData
-        .map((json) => Course.fromJson(Map<String, dynamic>.from(json as Map)))
-        .toList();
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 8: Model Course & Parsing JSON'),
+        title: const Text('Tahap 9: CourseService Data Source'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         centerTitle: true,
       ),
@@ -154,45 +144,70 @@ class ModelCourseDemoPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Daftar Course (Object Model Ber-tipe):',
+                'Data Dimuat dari CourseService:',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
               const SizedBox(height: 10),
-              Column(
-                children: courses.map((item) {
-                  final course = item as Course;
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      title: Text(
-                        course.title,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+              FutureBuilder<List<Course>>(
+                future: coursesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24.0),
+                        child: CircularProgressIndicator(),
                       ),
-                      subtitle: Text(
-                        '${course.code} • ${course.credits} SKS • Status: ${course.status}',
-                      ),
-                      trailing: Consumer<CourseProvider>(
-                        builder: (context, provider, child) {
-                          final bool isFav = provider.isFavorite(course.code);
-                          return IconButton(
-                            icon: Icon(
-                              isFav ? Icons.favorite : Icons.favorite_border,
-                              color: isFav ? Colors.red : Colors.grey,
-                            ),
-                            onPressed: () {
-                              context.read<CourseProvider>().toggleFavorite(
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Gagal memuat data: ${snapshot.error}'),
+                    );
+                  }
+
+                  final courses = snapshot.data ?? [];
+
+                  return Column(
+                    children: courses.map((course) {
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            course.title,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            '${course.code} • ${course.credits} SKS • Status: ${course.status}',
+                          ),
+                          trailing: Consumer<CourseProvider>(
+                            builder: (context, provider, child) {
+                              final bool isFav = provider.isFavorite(
                                 course.code,
                               );
+                              return IconButton(
+                                icon: Icon(
+                                  isFav
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: isFav ? Colors.red : Colors.grey,
+                                ),
+                                onPressed: () {
+                                  context.read<CourseProvider>().toggleFavorite(
+                                    course.code,
+                                  );
+                                },
+                              );
                             },
-                          );
-                        },
-                      ),
-                    ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
+                },
               ),
             ],
           ),
