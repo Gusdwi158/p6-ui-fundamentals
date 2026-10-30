@@ -13,59 +13,41 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 16 - Debugging Challenge',
+      title: 'Tahap 1 - Local vs Shared State',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const DebuggingChallengePage(),
+      home: const StateClassificationPage(),
     );
   }
 }
 
-class DebuggingChallengePage extends StatefulWidget {
-  const DebuggingChallengePage({super.key});
+class StateClassificationPage extends StatefulWidget {
+  const StateClassificationPage({super.key});
 
   @override
-  State<DebuggingChallengePage> createState() => _DebuggingChallengePageState();
+  State<StateClassificationPage> createState() =>
+      _StateClassificationPageState();
 }
 
-class _DebuggingChallengePageState extends State<DebuggingChallengePage> {
-  // Kasus D: Flag boolean debouncing untuk mencegah navigasi ganda
-  bool isNavigating = false;
-
-  void openDetailSafely() async {
-    if (isNavigating) return; // Abaikan klik berulang yang cepat
-
-    setState(() {
-      isNavigating = true;
-    });
-
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const DummyDetailPage()),
-    );
-
-    if (mounted) {
-      setState(() {
-        isNavigating = false;
-      });
-    }
-  }
+class _StateClassificationPageState extends State<StateClassificationPage> {
+  // Poin 7: Implementasi Local State dengan setState()
+  bool isDetailVisible = false;
+  bool isLocalFavorite = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 16: Debugging Challenge'),
+        title: const Text('Tahap 1: Local vs Shared State'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         centerTitle: true,
       ),
-      // Kasus C Solusi: SingleChildScrollView mencegah keyboard overflow pada layar bawah
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -76,11 +58,19 @@ class _DebuggingChallengePageState extends State<DebuggingChallengePage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Padding(
-                  padding: EdgeInsets.all(14.0),
+                  padding: EdgeInsets.all(16.0),
                   child: Row(
                     children: [
-                      Icon(Icons.bug_report, color: Colors.teal, size: 36),
-                      SizedBox(width: 12),
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.blueAccent,
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                      SizedBox(width: 14),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -91,10 +81,11 @@ class _DebuggingChallengePageState extends State<DebuggingChallengePage> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          SizedBox(height: 3),
                           Text(
                             'NIM: $studentId | PTI 5 A',
                             style: TextStyle(
-                              color: Colors.teal,
+                              color: Colors.blueAccent,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
@@ -107,148 +98,128 @@ class _DebuggingChallengePageState extends State<DebuggingChallengePage> {
               ),
               const SizedBox(height: 16),
 
-              // ==========================================
-              // KASUS A: Perbaikan RenderFlex Overflow pada Row
-              // Solusi: Membungkus Text dengan Expanded agar teks membungkus (wrap)
-              // ==========================================
+              // Poin 5 & 6: Ringkasan 5 State & Pengelompokannya
               Card(
                 elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(14.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Kasus A: Perbaikan Row Teks Panjang',
+                        'Identifikasi & Klasifikasi 5 State:',
                         style: TextStyle(
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: Colors.teal,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
+                      _buildStateRow(
+                        '1. Status Bookmark / Favorites',
+                        'Shared State',
+                        Colors.orange,
+                      ),
+                      _buildStateRow(
+                        '2. Katalog Data Mata Kuliah',
+                        'Shared State',
+                        Colors.orange,
+                      ),
+                      _buildStateRow(
+                        '3. Expand / Hide Rincian Kartu',
+                        'Local State',
+                        Colors.green,
+                      ),
+                      _buildStateRow(
+                        '4. Indeks Tab Navigasi Aktif',
+                        'Shared State',
+                        Colors.orange,
+                      ),
+                      _buildStateRow(
+                        '5. Teks Input Formulir Feedback',
+                        'Local State',
+                        Colors.green,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Poin 7: Komponen Uji Local State (setState)
+              Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(Icons.info, color: Colors.blue),
-                          const SizedBox(width: 8),
-                          // Solusi Kasus A: Menggunakan Expanded
-                          Expanded(
-                            child: Text(
-                              '$studentId - $studentName - Teks deskripsi sangat panjang ini berhasil dibungkus rapi ke baris berikutnya tanpa menyebabkan RenderFlex overflow horizontal pada layar.',
-                              style: const TextStyle(fontSize: 13),
+                          const Text(
+                            'Flutter UI & Architecture',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              isLocalFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: isLocalFavorite ? Colors.red : Colors.grey,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isLocalFavorite = !isLocalFavorite;
+                              });
+                            },
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // ==========================================
-              // KASUS B: Perbaikan ListView di dalam Column
-              // Solusi: Gunakan shrinkWrap: true & physics: NeverScrollableScrollPhysics
-              // ==========================================
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(14.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
                       const Text(
-                        'Kasus B: ListView di dalam Column',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal,
-                        ),
+                        'MOB05 • 3 SKS • Status: Active',
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
                       ),
-                      const SizedBox(height: 8),
-                      // Solusi Kasus B: shrinkWrap: true mencegah vertical unbounded height
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: 2,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            dense: true,
-                            leading: const Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                            ),
-                            title: Text('Course Praktikum Item #${index + 1}'),
-                            subtitle: const Text(
-                              'Rendered safely without unbounded height',
-                            ),
-                          );
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            isDetailVisible = !isDetailVisible;
+                          });
                         },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // ==========================================
-              // KASUS D: Mencegah Navigasi Ganda (Debounce / Flag)
-              // ==========================================
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(14.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Kasus D: Pencegahan Navigasi Ganda',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal,
+                        icon: Icon(
+                          isDetailVisible
+                              ? Icons.expand_less
+                              : Icons.expand_more,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton.icon(
-                        onPressed: isNavigating ? null : openDetailSafely,
-                        icon: const Icon(Icons.open_in_new),
                         label: Text(
-                          isNavigating
-                              ? 'Membuka Layar...'
-                              : 'Buka Detail (Aman dari Multi-Push)',
+                          isDetailVisible
+                              ? 'Sembunyikan Rincian'
+                              : 'Tampilkan Rincian (setState)',
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // ==========================================
-              // KASUS C: Form Input dekat bagian bawah layar
-              // ==========================================
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(14.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Kasus C: Keyboard Overflow Test Field',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal,
+                      if (isDetailVisible) ...[
+                        const Divider(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Rincian ini dikontrol oleh local state (isDetailVisible). Saat tombol ditekan, hanya widget ini yang dibangun ulang melalui setState().',
+                            style: TextStyle(fontSize: 13, height: 1.4),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      const TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Input di bagian bawah layar',
-                          hintText:
-                              'Klik untuk memunculkan keyboard virtual...',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.keyboard),
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -259,25 +230,30 @@ class _DebuggingChallengePageState extends State<DebuggingChallengePage> {
       ),
     );
   }
-}
 
-// Layar Dummy untuk Uji Navigasi Kasus D
-class DummyDetailPage extends StatelessWidget {
-  const DummyDetailPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Detail Screen (Single Route)')),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24.0),
-          child: Text(
-            'Halaman hanya terbuka tepat 1 kali di atas Navigation Stack berkat pengamanan flag isNavigating.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16),
+  static Widget _buildStateRow(String name, String type, Color badgeColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(name, style: const TextStyle(fontSize: 13)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: badgeColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              type,
+              style: TextStyle(
+                color: badgeColor,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
