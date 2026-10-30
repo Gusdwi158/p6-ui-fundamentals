@@ -13,9 +13,14 @@ class CourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFCBD5E1)),
+      ),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         onTap: () {
           Navigator.push(
             context,
@@ -24,10 +29,22 @@ class CourseCard extends StatelessWidget {
         },
         title: Text(
           course.title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Color(0xFF1E293B),
+          ),
         ),
-        subtitle: Text(
-          '${course.code} • ${course.credits} SKS • Status: ${course.status}',
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(
+            course.status,
+            style: const TextStyle(
+              color: Color(0xFF0D9488),
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+          ),
         ),
         trailing: Consumer<CourseProvider>(
           builder: (context, provider, child) {

@@ -20,21 +20,33 @@ class CourseService {
       return [
         Course(
           code: 'MOB01',
-          title: 'Git & Version Control',
+          title: 'Git & GitHub',
           credits: 2,
           status: 'done',
         ),
         Course(
           code: 'MOB02',
-          title: 'Dart OOP & Async',
+          title: 'Dart Fundamentals',
           credits: 2,
           status: 'done',
         ),
         Course(
           code: 'MOB03',
-          title: 'State Management & Architecture',
+          title: 'State Management',
           credits: 3,
           status: 'active',
+        ),
+        Course(
+          code: 'MOB04',
+          title: 'Clean Architecture',
+          credits: 3,
+          status: 'active',
+        ),
+        Course(
+          code: 'MOB05',
+          title: 'Local Persistence & DB',
+          credits: 3,
+          status: 'upcoming',
         ),
       ];
     }
