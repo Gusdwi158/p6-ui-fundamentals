@@ -6,8 +6,6 @@ import 'course_provider.dart';
 const String studentName = 'I Kadek Agus Dwi Adnyana';
 const String studentId = '2415051076';
 
-//I KADEK AGUS DWI ADNYANA
-// 2415051076
 void main() {
   runApp(
     ChangeNotifierProvider(
@@ -20,22 +18,24 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  //I KADEK AGUS DWI ADNYANA
+  // 2415051076
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 6 - Provider Setup',
+      title: 'Tahap 7 - Watch, Read, & Consumer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const ProviderSetupPage(),
+      home: const WatchReadConsumerPage(),
     );
   }
 }
 
-class ProviderSetupPage extends StatelessWidget {
-  const ProviderSetupPage({super.key});
+class WatchReadConsumerPage extends StatelessWidget {
+  const WatchReadConsumerPage({super.key});
 
   final List rawCourses = const [
     {'id': 'MOB01', 'title': 'Git & Version Control', 'credits': 2},
@@ -45,11 +45,11 @@ class ProviderSetupPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<CourseProvider>();
+    final int totalFav = context.watch<CourseProvider>().favoriteCount;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 6: Provider Setup'),
+        title: const Text('Tahap 7: watch, read, & Consumer'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         centerTitle: true,
       ),
@@ -115,14 +115,14 @@ class ProviderSetupPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Total Favorit (via Provider):',
+                      'Total Favorit (context.watch):',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     Text(
-                      '${provider.favoriteCount} Item',
+                      '$totalFav Item',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -134,7 +134,7 @@ class ProviderSetupPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Daftar Kursus (Akses State dari Root):',
+                'Daftar Kursus (Consumer & context.read):',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
               const SizedBox(height: 10),
@@ -142,7 +142,6 @@ class ProviderSetupPage extends StatelessWidget {
                 children: rawCourses.map((item) {
                   final c = item as Map;
                   final String id = c['id'].toString();
-                  final bool isFav = provider.isFavorite(id);
 
                   return Card(
                     margin: const EdgeInsets.only(bottom: 10),
@@ -155,13 +154,18 @@ class ProviderSetupPage extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text('$id • ${c['credits']} SKS'),
-                      trailing: IconButton(
-                        icon: Icon(
-                          isFav ? Icons.favorite : Icons.favorite_border,
-                          color: isFav ? Colors.red : Colors.grey,
-                        ),
-                        onPressed: () {
-                          provider.toggleFavorite(id);
+                      trailing: Consumer<CourseProvider>(
+                        builder: (context, provider, child) {
+                          final bool isFav = provider.isFavorite(id);
+                          return IconButton(
+                            icon: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              color: isFav ? Colors.red : Colors.grey,
+                            ),
+                            onPressed: () {
+                              context.read<CourseProvider>().toggleFavorite(id);
+                            },
+                          );
                         },
                       ),
                     ),
