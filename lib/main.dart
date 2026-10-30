@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'course_state.dart';
+
 const String studentName = 'I Kadek Agus Dwi Adnyana';
 const String studentId = '2415051076';
 
@@ -13,52 +15,44 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 4 - ValueNotifier',
+      title: 'Tahap 5 - ChangeNotifier',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const ValueNotifierDemoPage(),
+      home: const ChangeNotifierDemoPage(),
     );
   }
 }
 
-class ValueNotifierDemoPage extends StatefulWidget {
-  const ValueNotifierDemoPage({super.key});
+class ChangeNotifierDemoPage extends StatefulWidget {
+  const ChangeNotifierDemoPage({super.key});
 
   @override
-  State<ValueNotifierDemoPage> createState() => _ValueNotifierDemoPageState();
+  State<ChangeNotifierDemoPage> createState() => _ChangeNotifierDemoPageState();
 }
 
-class _ValueNotifierDemoPageState extends State<ValueNotifierDemoPage> {
-  final ValueNotifier<int> favoriteCount = ValueNotifier<int>(0);
+class _ChangeNotifierDemoPageState extends State<ChangeNotifierDemoPage> {
+  final CourseState courseState = CourseState();
+
+  final List rawCourses = const [
+    {'id': 'MOB01', 'title': 'Git & Version Control', 'credits': 2},
+    {'id': 'MOB02', 'title': 'Dart OOP & Async', 'credits': 2},
+    {'id': 'MOB03', 'title': 'State Management & Architecture', 'credits': 3},
+  ];
 
   @override
   void dispose() {
-    favoriteCount.dispose();
+    courseState.dispose();
     super.dispose();
-  }
-
-  void incrementFavorite() {
-    favoriteCount.value++;
-  }
-
-  void decrementFavorite() {
-    if (favoriteCount.value > 0) {
-      favoriteCount.value--;
-    }
-  }
-
-  void resetFavorite() {
-    favoriteCount.value = 0;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 4: ValueNotifier & Listener'),
+        title: const Text('Tahap 5: ChangeNotifier & notifyListeners'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         centerTitle: true,
       ),
@@ -113,107 +107,79 @@ class _ValueNotifierDemoPageState extends State<ValueNotifierDemoPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Total Kursus Favorit Terpilih',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w500,
+              ListenableBuilder(
+                listenable: courseState,
+                builder: (context, child) {
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Total Kursus Favorit (ChangeNotifier):',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      ValueListenableBuilder<int>(
-                        valueListenable: favoriteCount,
-                        builder: (context, value, child) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.blue.shade200),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.bookmark,
-                                  color: Colors.pinkAccent,
-                                  size: 30,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  '$value Kursus',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blueAccent,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Hanya widget di dalam ValueListenableBuilder yang dibangun ulang saat nilai berubah tanpa memicu render ulang Scaffold induk.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, color: Colors.black54),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: incrementFavorite,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Tambah (+1)'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
+                        Text(
+                          '${courseState.favoriteCount} Item',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueAccent,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: decrementFavorite,
-                      icon: const Icon(Icons.remove),
-                      label: const Text('Kurang (-1)'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange.shade700,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: resetFavorite,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reset Nilai'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
+              const SizedBox(height: 16),
+              const Text(
+                'Katalog Kursus (Memicu notifyListeners):',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              const SizedBox(height: 10),
+              ListenableBuilder(
+                listenable: courseState,
+                builder: (context, child) {
+                  return Column(
+                    children: rawCourses.map((item) {
+                      final c = item as Map;
+                      final String id = c['id'].toString();
+                      final bool isFav = courseState.isFavorite(id);
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            c['title'].toString(),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text('$id • ${c['credits']} SKS'),
+                          trailing: IconButton(
+                            icon: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              color: isFav ? Colors.red : Colors.grey,
+                            ),
+                            onPressed: () {
+                              courseState.toggleFavorite(id);
+                            },
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
               ),
             ],
           ),
